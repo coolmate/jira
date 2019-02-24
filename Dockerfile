@@ -1,9 +1,9 @@
-FROM blacklabelops/alpine:3.5
+FROM blacklabelops/alpine:3.8
 MAINTAINER Steffen Bleul <sbl@blacklabelops.com>
 
 # Note that you also need to update buildscripts/release.sh when the
 # Jira version changes
-ARG JIRA_VERSION=7.5.0
+ARG JIRA_VERSION=7.13.0
 ARG JIRA_PRODUCT=jira-software
 # Permissions, set the linux user id and group id
 ARG CONTAINER_UID=1000
@@ -20,8 +20,8 @@ ENV JIRA_USER=jira                            \
     JIRA_HOME=/var/atlassian/jira             \
     JIRA_INSTALL=/opt/jira                    \
     JIRA_SCRIPTS=/usr/local/share/atlassian   \
-    MYSQL_DRIVER_VERSION=5.1.44               \
-    DOCKERIZE_VERSION=v0.4.0
+    MYSQL_DRIVER_VERSION=5.1.47               \
+    DOCKERIZE_VERSION=v0.6.1
 ENV JAVA_HOME=$JIRA_INSTALL/jre
 
 ENV PATH=$PATH:$JAVA_HOME/bin \
@@ -37,7 +37,7 @@ RUN apk add --update                                    \
       wget                                              \
       xmlstarlet                                    &&  \
     # Install latest glibc
-    export GLIBC_VERSION=2.25-r0 && \
+    export GLIBC_VERSION=2.28-r0 && \
     wget --directory-prefix=/tmp https://github.com/andyshinn/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk && \
     apk add --allow-untrusted /tmp/glibc-${GLIBC_VERSION}.apk && \
     wget --directory-prefix=/tmp https://github.com/andyshinn/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-bin-${GLIBC_VERSION}.apk && \
@@ -49,7 +49,7 @@ RUN apk add --update                                    \
     export JIRA_BIN=atlassian-${JIRA_PRODUCT}-${JIRA_VERSION}-x64.bin && \
     mkdir -p ${JIRA_HOME}                           &&  \
     mkdir -p ${JIRA_INSTALL}                        &&  \
-    wget -O /tmp/jira.bin https://downloads.atlassian.com/software/jira/downloads/${JIRA_BIN} && \
+    wget -O /tmp/jira.bin https://www.atlassian.com/software/jira/downloads/binary/${JIRA_BIN} && \
     chmod +x /tmp/jira.bin                          &&  \
     /tmp/jira.bin -q -varfile                           \
       ${JIRA_SCRIPTS}/response.varfile              &&  \
