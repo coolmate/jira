@@ -1,37 +1,47 @@
-version: '2'
+version: '3'
 
 services:
   jira:
-    image: blacklabelops/jira
-    container_name: jirasoftware
+    depends_on:
+      - postgresql
+    image: .
+    restart: always
     networks:
-      - jiranet
+      - webproxy
     volumes:
-      - ./jiradata/:/var/atlassian/jira
+      - ./jiradata:/var/atlassian/jira
     ports:
-      - '80:8080'
+      - '8080:8080'
     environment:
       - 'JIRA_DATABASE_URL=postgresql://jira@postgresql/jiradb'
       - 'JIRA_DB_PASSWORD=jellyfish'
-      - 'CATALINA_OPTS= -Xms256m -Xmx1g'
+      - 'SETENV_JVM_MINIMUM_MEMORY=256m'
+      - 'SETENV_JVM_MAXIMUM_MEMORY=1g'
       - 'JIRA_PROXY_NAME='
       - 'JIRA_PROXY_PORT='
       - 'JIRA_PROXY_SCHEME='
-      - 'DOCKER_WAIT_HOST=postgresql'
-      - 'DOCKER_WAIT_PORT=5432'
-    links:
-      - 'postgresql:postgresql'
+      - 'VIRTUAL_HOST=jira.sigmapps.com'
+      - 'LETSENCRYPT_HOST=jira.sigmapps.com'
+      - 'LETSENCRYPT_EMAIL=koumeibb@gmail.com'
+      - 'VIRTUAL_PORT=8080'
+
+    logging:
+      # limit logs retained on host to 25MB
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
     labels:
       com.blacklabelops.description: "Atlassian Jira"
       com.blacklabelops.service: "jira"
 
   postgresql:
     image: blacklabelops/postgres
-    hostname: postgresql
+    restart: always
     networks:
-      - jiranet
+      - webproxy
     volumes:
-      - ./postgresqldata/:/var/lib/postgresql/data
+      - ./postgresqldata:/var/lib/postgresql/data
     environment:
       - 'POSTGRES_USER=jira'
       # CHANGE THE PASSWORD!
@@ -40,6 +50,12 @@ services:
       - 'POSTGRES_ENCODING=UNICODE'
       - 'POSTGRES_COLLATE=C'
       - 'POSTGRES_COLLATE_TYPE=C'
+    logging:
+      # limit logs retained on host to 25MB
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
     labels:
       com.blacklabelops.description: "PostgreSQL Database Server"
       com.blacklabelops.service: "postgresql"
@@ -51,5 +67,9 @@ volumes:
     external: false
 
 networks:
+  webproxy:
+    external:
+      name: webproxy
   jiranet:
     driver: bridge
+
